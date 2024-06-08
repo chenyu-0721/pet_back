@@ -36,6 +36,14 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: 0,
     },
+    popular: {
+      type: Boolean,
+      default: 0,
+    },
+    newproduct: {
+      type: Boolean,
+      default: 0,
+    },
   },
   { versionKey: false }
 );
