@@ -32,6 +32,10 @@ const postSchema = new mongoose.Schema(
       default: 0,
       required: [true, "variety is required"],
     },
+    classification: {
+      type: String,
+      default: 0,
+    },
   },
   { versionKey: false }
 );
