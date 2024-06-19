@@ -22,7 +22,7 @@ router.post(
   handleErrorAsync(async (req, res, next) => {
     let { email, password, confirmPassword, name } = req.body;
     // 內容不可為空
-    if (!email || !password || !confirmPassword || !name) {
+    if (!email || !password || !confirmPassword) {
       return next(appError(400, "欄位未填寫正確！", next));
     }
     // 密碼正確
@@ -43,7 +43,6 @@ router.post(
     const newUser = await User.create({
       email,
       password,
-      name,
     });
     generateSendJWT(newUser, 201, res);
   })
