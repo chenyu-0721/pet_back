@@ -104,13 +104,6 @@ router.post(
   handleErrorAsync(async (req, res, next) => {
     const { image, title, price, quantity } = req.body;
 
-    const newItem = {
-      image: image,
-      title: title,
-      price: price,
-      quantity: quantity,
-    };
-
     try {
       const user = await User.findById(req.user.id);
 
@@ -118,7 +111,22 @@ router.post(
         return res.status(404).json({ error: "找不到該用戶" });
       }
 
-      user.cart.push(newItem);
+      // 查找是否已有同名商品
+      const existingItem = user.cart.find((item) => item.title === title);
+
+      if (existingItem) {
+        // 如果已存在，增加數量
+        existingItem.quantity = (existingItem.quantity || 1) + (quantity || 1);
+      } else {
+        // 否則，添加新商品
+        const newItem = {
+          image: image,
+          title: title,
+          price: price,
+          quantity: quantity || 1,
+        };
+        user.cart.push(newItem);
+      }
 
       await user.save();
 
