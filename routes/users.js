@@ -129,4 +129,25 @@ router.post(
   })
 );
 
+router.get(
+  "/getCart",
+  isAuth, // 身份驗證中介軟體
+  handleErrorAsync(async (req, res, next) => {
+    try {
+      // 找到當前使用者
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ error: "找不到該用戶" });
+      }
+
+      // 回應購物車內容
+      res.status(200).json({ cart: user.cart });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "伺服器錯誤" });
+    }
+  })
+);
+
 module.exports = router;
