@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
       image: String,
       title: String,
       price: Number,
+      quantity: Number,
     },
   ],
 });

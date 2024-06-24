@@ -101,12 +101,13 @@ router.post(
   "/addCart",
   isAuth,
   handleErrorAsync(async (req, res, next) => {
-    const { image, title, price } = req.body;
+    const { image, title, price, quantity } = req.body;
 
     const newItem = {
       image: image,
       title: title,
       price: price,
+      quantity: quantity,
     };
 
     try {
