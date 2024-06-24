@@ -7,7 +7,8 @@ const handleErrorAsync = require("../statusHandle/handleErrorAsync");
 const { isAuth, generateSendJWT } = require("../statusHandle/auth");
 const User = require("../models/users");
 const router = express.Router();
-
+const handleSuccess = require("../handleSuccess.js");
+const handleError = require("../handleError.js");
 /* * GET users listing. */
 router.get("/", function (req, res, next) {
   res.send("respond with a resource");
@@ -131,17 +132,15 @@ router.post(
 
 router.get(
   "/getCart",
-  isAuth, // 身份驗證中介軟體
+  isAuth,
   handleErrorAsync(async (req, res, next) => {
     try {
-      // 找到當前使用者
       const user = await User.findById(req.user.id);
 
       if (!user) {
         return res.status(404).json({ error: "找不到該用戶" });
       }
 
-      // 回應購物車內容
       res.status(200).json({ cart: user.cart });
     } catch (err) {
       console.error(err);
@@ -149,5 +148,34 @@ router.get(
     }
   })
 );
+
+router.delete("/cart/:itemId", isAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const itemId = req.params.itemId;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "找不到該用戶" });
+    }
+
+    const itemIndex = user.cart.findIndex(
+      (item) => item._id.toString() === itemId
+    );
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: "找不到該商品" });
+    }
+
+    user.cart.splice(itemIndex, 1);
+    await user.save();
+
+    res.status(200).json({ message: "商品已從購物車中刪除" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
 
 module.exports = router;
