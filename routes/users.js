@@ -97,4 +97,35 @@ router.post("/cart", async (req, res) => {
   }
 });
 
+router.post(
+  "/addCart",
+  isAuth,
+  handleErrorAsync(async (req, res, next) => {
+    const { image, title, price } = req.body;
+
+    const newItem = {
+      image: image,
+      title: title,
+      price: price,
+    };
+
+    try {
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ error: "找不到該用戶" });
+      }
+
+      user.cart.push(newItem);
+
+      await user.save();
+
+      res.status(200).json({ message: "商品已添加到購物車" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "伺服器錯誤" });
+    }
+  })
+);
+
 module.exports = router;
