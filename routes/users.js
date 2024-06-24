@@ -49,7 +49,7 @@ router.post(
 );
 
 /**
- *  * 登入密碼
+ *  * 登入
  */
 router.post(
   "/sign_in",
@@ -67,50 +67,34 @@ router.post(
   })
 );
 
-/**
- * * 重設密碼
- */
+router.post("/cart", async (req, res) => {
+  const { token, product } = req.body;
 
-router.post(
-  "/updatePassword",
-  isAuth,
-  handleErrorAsync(async (req, res, next) => {
-    const { password, confirmPassword } = req.body;
-    if (password !== confirmPassword) {
-      return next(appError(400, "密碼不一致！", next));
+  if (!token) {
+    return res.status(401).json({ error: "未授權訪問，請先登入" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    const userId = decoded.userId;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "找不到使用者" });
     }
-    if (!validator.isLength(password, { min: 8 })) {
-      return next(appError(400, "密碼字數低於 8 碼", next));
-    }
 
-    newPassword = await bcrypt.hash(password, 12);
+    // 將商品加入購物車
+    user.cart.push(product);
 
-    const user = await User.findByIdAndUpdate(req.user.id, {
-      password: newPassword,
-    });
-    generateSendJWT(user, 200, res);
-  })
-);
+    // 保存用戶資訊，更新購物車
+    await user.save();
 
-/**
- * * 取得個人資料
- */
-router.get(
-  "/profile",
-  isAuth,
-  handleErrorAsync(async (req, res, next) => {
-    const user = req.user;
-    res.status(200).json({
-      status: "success",
-      data: {
-        user: {
-          email: user.email,
-          password: user.password,
-          createdAt: user.createdAt,
-        },
-      },
-    });
-  })
-);
+    res.status(200).json({ message: "成功將商品加入購物車", cart: user.cart });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
 
 module.exports = router;
