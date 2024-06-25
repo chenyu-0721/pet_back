@@ -87,7 +87,7 @@ router.post(
       if (existingItem) {
         // 如果已存在，增加數量
         existingItem.quantity = (existingItem.quantity || 1) + (quantity || 1);
-        existingItem.price *= existingItem.quantity;
+        existingItem.price += existingItem.price;
       } else {
         // 否則，添加新商品
         const newItem = {
