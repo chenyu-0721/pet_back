@@ -68,36 +68,6 @@ router.post(
   })
 );
 
-router.post("/cart", async (req, res) => {
-  const { token, product } = req.body;
-
-  if (!token) {
-    return res.status(401).json({ error: "未授權訪問，請先登入" });
-  }
-
-  try {
-    const decoded = jwt.verify(token, jwtSecret);
-    const userId = decoded.userId;
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ error: "找不到使用者" });
-    }
-
-    // 將商品加入購物車
-    user.cart.push(product);
-
-    // 保存用戶資訊，更新購物車
-    await user.save();
-
-    res.status(200).json({ message: "成功將商品加入購物車", cart: user.cart });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
-});
-
 router.post(
   "/addCart",
   isAuth,
@@ -185,5 +155,42 @@ router.delete("/cart/:itemId", isAuth, async (req, res) => {
     res.status(500).json({ error: "伺服器錯誤" });
   }
 });
+
+// 編輯購物車資訊
+router.put(
+  "/cart/:itemId",
+  isAuth,
+  handleErrorAsync(async (req, res, next) => {
+    const { image, title, price, quantity } = req.body;
+    const itemId = req.params.itemId;
+
+    try {
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({ error: "找不到該用戶" });
+      }
+
+      const item = user.cart.find((item) => item._id.toString() === itemId);
+
+      if (!item) {
+        return res.status(404).json({ error: "找不到該商品" });
+      }
+
+      // 更新商品資訊
+      if (image !== undefined) item.image = image;
+      if (title !== undefined) item.title = title;
+      if (price !== undefined) item.price = price;
+      if (quantity !== undefined) item.quantity = quantity;
+
+      await user.save();
+
+      res.status(200).json({ message: "商品資訊已更新", cart: user.cart });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "伺服器錯誤" });
+    }
+  })
+);
 
 module.exports = router;
