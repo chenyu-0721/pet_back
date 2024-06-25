@@ -92,7 +92,7 @@ router.post(
         const newItem = {
           image: image,
           title: title,
-          price: price,
+          price: price*quantity,
           quantity: quantity || 1,
         };
         user.cart.push(newItem);
